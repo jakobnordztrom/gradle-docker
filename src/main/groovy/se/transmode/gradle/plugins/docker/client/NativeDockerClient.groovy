@@ -19,9 +19,9 @@ import org.gradle.api.GradleException
 
 class NativeDockerClient implements DockerClient {
 
-    private final String binary;
+    private final List binary;
 
-    NativeDockerClient(String binary) {
+    NativeDockerClient(List binary) {
         Preconditions.checkArgument(binary as Boolean,  "Docker binary can not be empty or null.")
         this.binary = binary
     }
@@ -29,14 +29,14 @@ class NativeDockerClient implements DockerClient {
     @Override
     String buildImage(File buildDir, String tag, boolean pull) {
         Preconditions.checkArgument(tag as Boolean,  "Image tag can not be empty or null.")
-        def cmdLine = [binary, "build", "--pull=${pull}", "-t", tag, buildDir.toString() ]
+        def cmdLine = binary.push(["build", "--pull=${pull}", "-t", tag, buildDir.toString() ])
         return executeAndWait(cmdLine)
     }
 
     @Override
     String pushImage(String tag) {
         Preconditions.checkArgument(tag as Boolean,  "Image tag can not be empty or null.")
-        def cmdLine = [binary, "push", tag]
+        def cmdLine = binary.push(["push", tag])
         return executeAndWait(cmdLine)
     }
 
