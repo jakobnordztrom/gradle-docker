@@ -19,35 +19,37 @@ import org.gradle.api.GradleException
 
 class NativeDockerClient implements DockerClient {
 
-    private final List binary;
+    private final List<String> binary
+    private CommandExecutor commandExecutor
 
-    NativeDockerClient(List binary) {
-        Preconditions.checkArgument(binary as Boolean,  "Docker binary can not be empty or null.")
-        this.binary = binary
+    NativeDockerClient(List<String> binary) {
+        Preconditions.checkArgument((binary && !binary.isEmpty()),  "Docker binary can not be empty or null.")
+        this.binary = Collections.unmodifiableList(binary)
+        this.commandExecutor = new CommandExecutorImpl()
+    }
+
+    void setCommandExecutor(CommandExecutor executor){
+        this.commandExecutor = executor
     }
 
     @Override
     String buildImage(File buildDir, String tag, boolean pull) {
         Preconditions.checkArgument(tag as Boolean,  "Image tag can not be empty or null.")
-        def cmdLine = binary.push(["build", "--pull=${pull}", "-t", tag, buildDir.toString() ])
-        return executeAndWait(cmdLine)
+        List cmdLine = []
+        cmdLine.addAll(binary)
+        cmdLine.addAll(["build", "--pull=${pull}", "-t", tag, buildDir.toString()])
+        return commandExecutor.executeAndWait(cmdLine)
     }
 
     @Override
     String pushImage(String tag) {
         Preconditions.checkArgument(tag as Boolean,  "Image tag can not be empty or null.")
-        def cmdLine = binary.push(["push", tag])
-        return executeAndWait(cmdLine)
+        List cmdLine = []
+        cmdLine.addAll(binary)
+        cmdLine.addAll(["push", tag])
+        return commandExecutor.executeAndWait(cmdLine)
     }
 
-    private static String executeAndWait(List<String> cmdLine) {
-        def process = cmdLine.execute()
-        process.waitForProcessOutput(System.out, System.err)
-        if (process.exitValue()) {
-            throw new GradleException("Docker execution failed\nCommand line [${cmdLine}]")
-        }
-        return "Done"
-    }
 
     @Override
     String run(String tag, String containerName, boolean detached, boolean autoRemove, 
@@ -66,21 +68,23 @@ class NativeDockerClient implements DockerClient {
 
         def detachedArg = detached ? '-d' : ''
         def removeArg = autoRemove ? '--rm' : ''
-        def List<String> cmdLine = [binary, "run", detachedArg, removeArg, "--name" , containerName]
+        List<String> cmdLine = []
+        cmdLine.addAll(binary)
+        cmdLine.addAll(["run", detachedArg, removeArg, "--name" , containerName])
         cmdLine = appendArguments(cmdLine, env, "--env", '=')
         cmdLine = appendArguments(cmdLine, ports, "--publish")
         cmdLine = appendArguments(cmdLine, volumes, "--volume")
         cmdLine = appendArguments(cmdLine, volumesFrom, "--volumes-from")
         cmdLine = appendArguments(cmdLine, links, "--link")
         cmdLine.add(tag)
-        return executeAndWait(cmdLine)
+        return commandExecutor.executeAndWait(cmdLine)
     }
 
     private static List<String> appendArguments(List<String> cmdLine, Map<String, String> map, String option,
             String separator = ':') {
         // Add each entry in the map as the indicated argument
         map.each { key, value ->
-            cmdLine.add(option);
+            cmdLine.add(option)
             cmdLine.add("${key}${separator}${value}")
         }
         return cmdLine
@@ -89,8 +93,8 @@ class NativeDockerClient implements DockerClient {
     private static List<String> appendArguments(List<String> cmdLine, List<String> list, String option) {
         // Add each entry in the map as the indicated argument
         list.each {
-            cmdLine.add(option);
-            cmdLine.add(it);
+            cmdLine.add(option)
+            cmdLine.add(it)
         }
         return cmdLine
     }
