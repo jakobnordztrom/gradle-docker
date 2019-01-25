@@ -52,6 +52,13 @@ class DockerTaskBaseTest {
     }
 
     @Test
+    public void setDockerBinaryWithArgs() {
+        def project = createProject()
+        project.dummyTask.dockerBinary = ['a', 'b']
+        assertThat(project.dummyTask.dockerBinary.size , equalTo(2))
+    }
+
+    @Test
     public void getNativeClient() {
         def project = createProject()
         DockerClient client = project.dummyTask.getClient()

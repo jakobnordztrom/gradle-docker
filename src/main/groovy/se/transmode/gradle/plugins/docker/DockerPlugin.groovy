@@ -76,7 +76,7 @@ class DockerPlugin implements Plugin<Project> {
         def extension = project.extensions.create(EXTENSION_NAME, DockerPluginExtension)
         extension.with {
             maintainer = ''
-            dockerBinary = DOCKER_BINARY
+            dockerBinary = [DOCKER_BINARY]
             registry = ''
             useApi = Boolean.FALSE
             hostUrl = ''

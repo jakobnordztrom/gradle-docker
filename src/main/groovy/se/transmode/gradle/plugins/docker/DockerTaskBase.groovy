@@ -41,8 +41,8 @@ abstract class DockerTaskBase extends DefaultTask {
     // Should we use Docker's remote API instead of the docker executable
     Boolean useApi
     
-    // Full path to the docker executable
-    String dockerBinary
+    // Full path to the docker executable, including any commandline options
+    List dockerBinary
     
     // URL of the remote Docker host (default: localhost)
     String hostUrl
@@ -56,9 +56,18 @@ abstract class DockerTaskBase extends DefaultTask {
         applicationName = project.name
     }
 
+    void setDockerBinary(String binary) {
+        dockerBinary = [binary]
+    }
+
+    void setDockerBinary(List binary) {
+        dockerBinary = binary
+    }
+
     void setTagVersion(String version) {
         tagVersion = version;
     }
+
 
     void setTagVersionToLatest() {
         tagVersion = LATEST_VERSION;

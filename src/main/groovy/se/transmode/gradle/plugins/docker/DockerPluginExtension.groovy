@@ -21,7 +21,7 @@ class DockerPluginExtension {
     String registry
 
     // path to the docker binary
-    String dockerBinary
+    List dockerBinary
 
     // use docker REST api (with docker-java)
     Boolean useApi
