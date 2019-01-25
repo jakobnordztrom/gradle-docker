@@ -50,10 +50,10 @@ public class JavaDockerClient implements DockerClient {
             log.info("Connecting to localhost");
         } else {
             log.info("Connecting to {}", url);
-            configBuilder.withUri(url);
+            configBuilder.withRegistryUrl(url);
         }
         if (StringUtils.isNotEmpty(user)) {
-            configBuilder.withUsername(user).withPassword(password).withEmail(email);
+            configBuilder.withRegistryUsername(user).withRegistryPassword(password).withRegistryEmail(email);
         }
         return new JavaDockerClient(DockerClientBuilder.getInstance(configBuilder).build());
     }
